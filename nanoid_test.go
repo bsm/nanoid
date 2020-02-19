@@ -39,17 +39,17 @@ func TestAlphabet_FromReader(t *testing.T) {
 	t.Log(nanoid.Base32.MustGenerate(16))
 
 	s := nanoid.Must(nanoid.Base32.FromReader(strings.NewReader("mOckrand0m"), 10))
-	if x := nanoid.ID("NPDLSBOEQN"); x != s {
+	if x := "NPDLSBOEQN"; x != s {
 		t.Fatalf("expected %q but got %q", x, s)
 	}
 
 	s = nanoid.Must(nanoid.Base58.FromReader(strings.NewReader("mOckrand0m"), 10))
-	if x := nanoid.ID("tNirygujqt"); x != s {
+	if x := "tNirygujqt"; x != s {
 		t.Fatalf("expected %q but got %q", x, s)
 	}
 
 	s = nanoid.Must(nanoid.Base64.FromReader(strings.NewReader("mOckrand0m"), 10))
-	if x := nanoid.ID("Sm2UN4R1PS"); x != s {
+	if x := "Sm2UN4R1PS"; x != s {
 		t.Fatalf("expected %q but got %q", x, s)
 	}
 }

@@ -51,18 +51,18 @@ func NewEncoding(alphabet string) (*Encoding, error) {
 // the expression:
 //
 //    nanoid.Must(Encoding.Generate(size))
-func (e *Encoding) MustGenerate(size int) ID {
+func (e *Encoding) MustGenerate(size int) string {
 	return Must(e.Generate(size))
 }
 
 // Generate generates a new ID from a cryptographically random source.
-func (e *Encoding) Generate(size int) (ID, error) {
+func (e *Encoding) Generate(size int) (string, error) {
 	return e.FromReader(rand.Reader, size)
 }
 
 // FromReader generates a new ID from a reader.
 // If size of <1 is passed, DefaultSize will be assumed.
-func (e *Encoding) FromReader(r io.Reader, size int) (ID, error) {
+func (e *Encoding) FromReader(r io.Reader, size int) (string, error) {
 	if size < 1 {
 		size = 21
 	}
@@ -77,14 +77,11 @@ func (e *Encoding) FromReader(r io.Reader, size int) (ID, error) {
 		bytes[i] = e.alphabet[c%n]
 	}
 
-	return ID(bytes), nil
+	return string(bytes), nil
 }
 
-// ID holds a fixed size ID.
-type ID string
-
 // Must returns uuid if err is nil and panics otherwise.
-func Must(id ID, err error) ID {
+func Must(id string, err error) string {
 	if err != nil {
 		panic(err)
 	}
@@ -95,7 +92,7 @@ func Must(id ID, err error) ID {
 // for:
 //
 //    nanoid.NewSize(DefaultSize)
-func New() ID {
+func New() string {
 	return NewSize(DefaultSize)
 }
 
@@ -103,6 +100,6 @@ func New() ID {
 // for:
 //
 //    nanoid.Base64.NewSize(size)
-func NewSize(size int) ID {
+func NewSize(size int) string {
 	return Base64.MustGenerate(size)
 }
