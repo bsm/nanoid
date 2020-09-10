@@ -1,6 +1,7 @@
 package nanoid_test
 
 import (
+	"io"
 	"strings"
 	"testing"
 
@@ -36,20 +37,22 @@ func TestNew(t *testing.T) {
 }
 
 func TestAlphabet_FromReader(t *testing.T) {
-	t.Log(nanoid.Base32.MustGenerate(16))
-
-	s := nanoid.Must(nanoid.Base32.FromReader(strings.NewReader("mOckrand0m"), 10))
-	if x := "NPDLSBOEQN"; x != s {
+	s := nanoid.Must(nanoid.Base32.FromReader(mockEntropy(), 10))
+	if x := "npdlsboeqn"; x != s {
 		t.Fatalf("expected %q but got %q", x, s)
 	}
 
-	s = nanoid.Must(nanoid.Base58.FromReader(strings.NewReader("mOckrand0m"), 10))
+	s = nanoid.Must(nanoid.Base58.FromReader(mockEntropy(), 10))
 	if x := "tNirygujqt"; x != s {
 		t.Fatalf("expected %q but got %q", x, s)
 	}
 
-	s = nanoid.Must(nanoid.Base64.FromReader(strings.NewReader("mOckrand0m"), 10))
+	s = nanoid.Must(nanoid.Base64.FromReader(mockEntropy(), 10))
 	if x := "Sm2UN4R1PS"; x != s {
 		t.Fatalf("expected %q but got %q", x, s)
 	}
+}
+
+func mockEntropy() io.Reader {
+	return strings.NewReader("mOckrand0m")
 }
