@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"io"
+	"unsafe"
 )
 
 var (
@@ -21,8 +22,8 @@ var Base64, _ = NewEncoding("-_zyxwvutsrqponmlkjihgfedcba9876543210ZYXWVUTSRQPON
 // Base58 is a more human-friendly base58 encoding.
 var Base58, _ = NewEncoding("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
 
-// Base32 uses standard Base32 alphabet.
-var Base32, _ = NewEncoding("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567")
+// Base32 uses lowercase Base32 alphabet.
+var Base32, _ = NewEncoding("abcdefghijklmnopqrstuvwxyz234567")
 
 // Encoding defines the characters that consitute the output ID.
 type Encoding struct{ alphabet string }
@@ -77,7 +78,7 @@ func (e *Encoding) FromReader(r io.Reader, size int) (string, error) {
 		bytes[i] = e.alphabet[c%n]
 	}
 
-	return string(bytes), nil
+	return *(*string)(unsafe.Pointer(&bytes)), nil
 }
 
 // Must returns uuid if err is nil and panics otherwise.
