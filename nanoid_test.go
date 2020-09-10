@@ -44,23 +44,47 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestAlphabet_FromReader(t *testing.T) {
-	s := nanoid.Must(nanoid.Base32.FromReader(mockEntropy(), 10))
+func TestEncoding(t *testing.T) {
+	enc, err := nanoid.NewEncoding("abc")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ent := mockEntropy()
+	for _, x := range []string{
+		"bbac",
+		"abcb",
+		"abbb",
+		"baca",
+		"bcba",
+		"bbbb",
+		"acab",
+	} {
+		if s, err := enc.FromEntropy(ent, 4); err != nil {
+			t.Fatal(err)
+		} else if x != s {
+			t.Fatalf("expected %q but got %q", x, s)
+		}
+	}
+}
+
+func TestEncoding_FromEntropy(t *testing.T) {
+	s := nanoid.Must(nanoid.Base32.FromEntropy(mockEntropy(), 10))
 	if x := "npdlsboeqn"; x != s {
 		t.Fatalf("expected %q but got %q", x, s)
 	}
 
-	s = nanoid.Must(nanoid.Base58.FromReader(mockEntropy(), 10))
+	s = nanoid.Must(nanoid.Base58.FromEntropy(mockEntropy(), 10))
 	if x := "tNirygujqt"; x != s {
 		t.Fatalf("expected %q but got %q", x, s)
 	}
 
-	s = nanoid.Must(nanoid.Base64.FromReader(mockEntropy(), 10))
+	s = nanoid.Must(nanoid.Base64.FromEntropy(mockEntropy(), 10))
 	if x := "Sm2UN4R1PS"; x != s {
 		t.Fatalf("expected %q but got %q", x, s)
 	}
 }
 
 func mockEntropy() io.Reader {
-	return strings.NewReader("mOckrand0m")
+	return strings.NewReader("mOckrand0m.mOckrand0m.mOckrand0m.mOckrand0m.mOckrand0m")
 }

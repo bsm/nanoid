@@ -30,8 +30,6 @@ var Base32, _ = NewEncoding("abcdefghijklmnopqrstuvwxyz234567")
 // Encoding defines the characters that consitute the output ID.
 type Encoding struct {
 	alphabet string
-	entropy  io.Reader
-	mutex    sync.Mutex
 }
 
 // NewEncoding inits a new Encoding.
@@ -51,10 +49,7 @@ func NewEncoding(alphabet string) (*Encoding, error) {
 		}
 		seen[c] = struct{}{}
 	}
-	return &Encoding{
-		alphabet: alphabet,
-		entropy:  bufio.NewReader(rand.Reader),
-	}, nil
+	return &Encoding{alphabet: alphabet}, nil
 }
 
 // MustGenerate creates a new random ID or panics. It is equivalent to
@@ -67,21 +62,22 @@ func (e *Encoding) MustGenerate(size int) string {
 
 // Generate generates a new ID from a cryptographically random source.
 func (e *Encoding) Generate(size int) (string, error) {
-	return e.FromReader(e.entropy, size)
+	ent := fetchEntropy()
+	defer entropyPool.Put(ent)
+
+	return e.FromEntropy(ent, size)
 }
 
-// FromReader generates a new ID from a reader.
+// FromEntropy generates a new ID from an entropy.
+// The entropy reader must be goroutine safe.
 // If size of <1 is passed, DefaultSize will be assumed.
-func (e *Encoding) FromReader(r io.Reader, size int) (string, error) {
+func (e *Encoding) FromEntropy(entropy io.Reader, size int) (string, error) {
 	if size < 1 {
 		size = 21
 	}
 
 	bytes := make([]byte, size)
-	e.mutex.Lock()
-	_, err := io.ReadFull(r, bytes)
-	e.mutex.Unlock()
-	if err != nil {
+	if _, err := io.ReadFull(entropy, bytes); err != nil {
 		return "", err
 	}
 
@@ -115,4 +111,15 @@ func New() string {
 //    nanoid.Base64.NewSize(size)
 func NewSize(size int) string {
 	return Base64.MustGenerate(size)
+}
+
+// --------------------------------------------------------------------
+
+var entropyPool sync.Pool
+
+func fetchEntropy() *bufio.Reader {
+	if v := entropyPool.Get(); v != nil {
+		return v.(*bufio.Reader)
+	}
+	return bufio.NewReader(rand.Reader)
 }
