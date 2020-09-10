@@ -10,8 +10,7 @@ import (
 
 func BenchmarkNew(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		s := nanoid.New()
-		if len(s) != 21 {
+		if s := nanoid.New(); len(s) != 21 {
 			b.Fatalf("expected 21 chars, but got %d (%s)", len(s), s)
 		}
 	}
@@ -19,11 +18,20 @@ func BenchmarkNew(b *testing.B) {
 
 func BenchmarkNewSize(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		s := nanoid.NewSize(16)
-		if len(s) != 16 {
+		if s := nanoid.NewSize(16); len(s) != 16 {
 			b.Fatalf("expected 16 chars, but got %d (%s)", len(s), s)
 		}
 	}
+}
+
+func BenchmarkNew_parallel(b *testing.B) {
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			if s := nanoid.New(); len(s) != 21 {
+				b.Fatalf("expected 21 chars, but got %d (%s)", len(s), s)
+			}
+		}
+	})
 }
 
 func TestNew(t *testing.T) {

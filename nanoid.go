@@ -1,9 +1,11 @@
 package nanoid
 
 import (
+	"bufio"
 	"crypto/rand"
 	"errors"
 	"io"
+	"sync"
 	"unsafe"
 )
 
@@ -26,7 +28,11 @@ var Base58, _ = NewEncoding("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrs
 var Base32, _ = NewEncoding("abcdefghijklmnopqrstuvwxyz234567")
 
 // Encoding defines the characters that consitute the output ID.
-type Encoding struct{ alphabet string }
+type Encoding struct {
+	alphabet string
+	entropy  io.Reader
+	mutex    sync.Mutex
+}
 
 // NewEncoding inits a new Encoding.
 func NewEncoding(alphabet string) (*Encoding, error) {
@@ -45,7 +51,10 @@ func NewEncoding(alphabet string) (*Encoding, error) {
 		}
 		seen[c] = struct{}{}
 	}
-	return &Encoding{alphabet: alphabet}, nil
+	return &Encoding{
+		alphabet: alphabet,
+		entropy:  bufio.NewReader(rand.Reader),
+	}, nil
 }
 
 // MustGenerate creates a new random ID or panics. It is equivalent to
@@ -58,7 +67,7 @@ func (e *Encoding) MustGenerate(size int) string {
 
 // Generate generates a new ID from a cryptographically random source.
 func (e *Encoding) Generate(size int) (string, error) {
-	return e.FromReader(rand.Reader, size)
+	return e.FromReader(e.entropy, size)
 }
 
 // FromReader generates a new ID from a reader.
@@ -69,7 +78,10 @@ func (e *Encoding) FromReader(r io.Reader, size int) (string, error) {
 	}
 
 	bytes := make([]byte, size)
-	if _, err := io.ReadFull(r, bytes); err != nil {
+	e.mutex.Lock()
+	_, err := io.ReadFull(r, bytes)
+	e.mutex.Unlock()
+	if err != nil {
 		return "", err
 	}
 
