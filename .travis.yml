@@ -1,9 +1,0 @@
-language: go
-go:
-  - 1.15.x
-  - 1.14.x
-script:
-  - make test bench
-cache:
-  directories:
-    - $GOPATH/pkg/mod
